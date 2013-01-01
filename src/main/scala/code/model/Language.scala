@@ -28,7 +28,6 @@ class Language extends LongKeyedMapper[Language] with IdPK {
     Ingredient.findByLanguage(this).map(_.language(Empty).save)
     Localization.findAll(By(Localization.language, this)).map(_.language(Empty).save)
     Recipe.findByLanguage(this).map(_.language(Empty).save)
-
     TypeOfMeasure.findAll(By(TypeOfMeasure.language,this)).map(_.language(Empty).save)
   }
   def deleteDependents {
