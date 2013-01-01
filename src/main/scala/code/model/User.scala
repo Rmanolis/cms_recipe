@@ -52,6 +52,23 @@ class User extends MegaProtoUser[User] {
     }
   }
   
+  def cleanDependents{
+    Recipe.findAll(By(Recipe.author,this)).map{
+      re => re.author(Empty).save
+    }
+  }
+  
+  def deleteDependents{
+    Recipe.findAll(By(Recipe.author,this)).map{
+      re => re.delete
+    }
+  }
+  
+  def delete{
+    cleanDependents
+    delete_!
+  }
+  
 }
 
 

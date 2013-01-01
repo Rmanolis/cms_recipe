@@ -5,6 +5,7 @@ import util._
 import http._
 import common._
 import Helpers._
+import mapper._
 
 import js.JsCmds._
 import code.model._
@@ -80,20 +81,20 @@ class EditIngredient {
 
       out = (
         "#name" #> SHtml.text(name, name = _) &
-         "#languages" #> SHtml.ajaxSelect(languages, Full(lang), s => {
-       
-        for {
-          lang <- Language.findByName(s)
-        } yield {
-          foodTypes = FoodType.findByLanguage(lang).map {
-            fd => (fd.name.is, fd.name.is)
+        "#languages" #> SHtml.ajaxSelect(languages, Full(lang), s => {
+
+          for {
+            lang <- Language.findByName(s)
+          } yield {
+            foodTypes = FoodType.findByLanguage(lang).map {
+              fd => (fd.name.is, fd.name.is)
+            }
           }
-        }
 
-        ReplaceOptions("foodTypes", List(("", "")) ++ foodTypes, Full(""))
+          ReplaceOptions("foodTypes", List(("", "")) ++ foodTypes, Full(""))
 
-      }, "id" -> "languages") &
-      "#foodTypes" #> SHtml.ajaxUntrustedSelect(foodTypes, Empty, ftname = _, "id" -> "foodTypes") &
+        }, "id" -> "languages") &
+        "#foodTypes" #> SHtml.ajaxUntrustedSelect(foodTypes, Empty, ftname = _, "id" -> "foodTypes") &
         "#addButton" #> SHtml.button(Text("Submit"), () => {
           Language.findByName(lang).map {
             l =>
@@ -115,8 +116,17 @@ class EditIngredient {
 
 }
 
-class CRUDIngredients {
-  def render(in: NodeSeq): NodeSeq = {
+class CRUDIngredients extends PaginatorSnippet[Ingredient] {
+  override def count = Ingredient.count
+  override def itemsPerPage = 10
+  override def page = {
+    var list: List[QueryParam[Ingredient]] = List()
+    list +:= OrderBy(Ingredient.id, Descending)
+    list +:= StartAt(curPage * itemsPerPage)
+    list +:= MaxRows(itemsPerPage)
+    Ingredient.findAll(list: _*)
+  }
+  def renderPage(in: NodeSeq): NodeSeq = {
     import SHtml._
 
     <table id="listIngredients"> {
@@ -125,9 +135,9 @@ class CRUDIngredients {
         <th> Language </th>
         <th> Food Type </th>
         <th> Edit </th>
-        <th> Delete </th>
+        <th> Delete </th> 
       </tr> ++
-        Ingredient.findAll.map {
+        page.map {
           ingredient =>
             <tr> {
               <td> { ingredient.name.is } </td> ++
@@ -145,7 +155,7 @@ class CRUDIngredients {
                 }</td> ++
                 <td> {
                   button(Text("Delete"), () => {
-                    ingredient.delete_!
+                    ingredient.delete
                     S.redirectTo(Site.crudIngredient.url)
                   })
                 }</td>

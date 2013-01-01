@@ -6,6 +6,7 @@ import util._
 import http._
 import common._
 import Helpers._
+import mapper._
 
 import js.JsCmds._
 import code.model._
@@ -71,8 +72,17 @@ class EditTypeOfMeasure{
   }
 }
 
-class CRUDTypeOfMeasures{
-  def render(in: NodeSeq): NodeSeq = {
+class CRUDTypeOfMeasures extends PaginatorSnippet[TypeOfMeasure] {
+  override def count = TypeOfMeasure.count
+  override def itemsPerPage = 10
+  override def page = {
+    var list: List[QueryParam[TypeOfMeasure]] = List()
+    list +:= OrderBy(TypeOfMeasure.id, Descending)
+    list +:= StartAt(curPage * itemsPerPage)
+    list +:= MaxRows(itemsPerPage)
+    TypeOfMeasure.findAll(list: _*)
+  }
+  def renderPage(in: NodeSeq): NodeSeq = {
     import SHtml._
 
     <table id="listTypeOfMeasures"> {
@@ -82,7 +92,7 @@ class CRUDTypeOfMeasures{
         <th> Edit </th>
         <th> Delete </th>
       </tr> ++
-        TypeOfMeasure.findAll.map {
+        page.map {
           tom =>
             <tr> {
               <td> { tom.name.is } </td> ++
@@ -97,7 +107,7 @@ class CRUDTypeOfMeasures{
                 }</td> ++
                 <td> {
                   button(Text("Delete"), () => {
-                    tom.delete_!
+                    tom.delete
                     S.redirectTo(Site.crudTypeOfMeasure.url)
                   })
                 }</td>

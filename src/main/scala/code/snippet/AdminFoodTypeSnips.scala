@@ -5,6 +5,7 @@ import net.liftweb._
 import util._
 import http._
 import common._
+import mapper._
 import Helpers._
 
 import js.JsCmds._
@@ -71,8 +72,17 @@ class EditFoodType {
 
 }
 
-class CRUDFoodTypes {
-def render(in: NodeSeq): NodeSeq = {
+class CRUDFoodTypes extends PaginatorSnippet[FoodType] {
+  override def count = FoodType.count
+  override def itemsPerPage = 10
+  override def page = {
+    var list: List[QueryParam[FoodType]] = List()
+    list +:= OrderBy(FoodType.id, Descending)
+    list +:= StartAt(curPage * itemsPerPage)
+    list +:= MaxRows(itemsPerPage)
+    FoodType.findAll(list: _*)
+  }
+  def renderPage(in: NodeSeq): NodeSeq = {
     import SHtml._
 
     <table id="listFoodTypes"> {
@@ -80,9 +90,11 @@ def render(in: NodeSeq): NodeSeq = {
         <th> Name </th>
         <th> Language </th>
         <th> Edit </th>
+        <th> Clean dependents</th>
+    	<th> Delete dependents</th>
         <th> Delete </th>
       </tr> ++
-        FoodType.findAll.map {
+        page.map {
           foodType =>
             <tr> {
               <td> { foodType.name.is } </td> ++
@@ -91,12 +103,26 @@ def render(in: NodeSeq): NodeSeq = {
                 } </td> ++
                 <td> {
                   button(Text("Edit"), () => {
-                   S.redirectTo(Site.editFoodTypeLoc.calcHref(foodType))
+                    S.redirectTo(Site.editFoodTypeLoc.calcHref(foodType))
+
+                  })
+                }</td> ++
+                <td> {
+                  button(Text("Clean dependents"), () => {
+                    foodType.cleanDependents
+                    S.redirectTo(Site.crudFoodType.url)
+                  })
+                }</td> ++
+                <td> {
+                  button(Text("Edit"), () => {
+                    foodType.deleteDependents
+                    S.redirectTo(Site.editFoodTypeLoc.calcHref(foodType))
 
                   })
                 }</td> ++
                 <td> {
                   button(Text("Delete"), () => {
+                    foodType.cleanDependents
                     foodType.delete_!
                     S.redirectTo(Site.crudFoodType.url)
                   })

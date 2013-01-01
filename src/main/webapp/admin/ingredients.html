@@ -1,7 +1,15 @@
 <lift:surround with="default" at="content">
 
-<div class="lift:CRUDIngredients?form=post">
+<div class="lift:CRUDIngredients.renderPage?form=post">
 	
 </div>
+<div class="lift:CRUDIngredients.paginate">
+		<nav:first></nav:first>
+		| <nav:prev ></nav:prev >
+		| <nav:allpages></nav:allpages>
+		| <nav:next></nav:next>
+		| <nav:last></nav:last>
+		| <nav:records ></nav:records >
+	</div>
 
 </lift:surround>

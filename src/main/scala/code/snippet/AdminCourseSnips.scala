@@ -5,13 +5,14 @@ import net.liftweb._
 import util._
 import http._
 import common._
+import mapper._
 import Helpers._
 
 import js.JsCmds._
 import code.model._
 import code.lib._
 
-class AddCourse{
+class AddCourse {
   def render = {
     var name = ""
     var languages = Language.findAll().map {
@@ -36,7 +37,7 @@ class AddCourse{
   }
 }
 
-class EditCourse{
+class EditCourse {
   def render(in: NodeSeq): NodeSeq = {
     var out = NodeSeq.Empty
     for {
@@ -70,8 +71,17 @@ class EditCourse{
   }
 }
 
-class CRUDCourses{
-  def render(in: NodeSeq): NodeSeq = {
+class CRUDCourses extends PaginatorSnippet[Course] {
+  override def count = Course.count
+  override def itemsPerPage = 10
+  override def page = {
+    var list: List[QueryParam[Course]] = List()
+    list +:= OrderBy(Course.id, Descending)
+    list +:= StartAt(curPage * itemsPerPage)
+    list +:= MaxRows(itemsPerPage)
+    Course.findAll(list: _*)
+  }
+  def renderPage(in: NodeSeq): NodeSeq = {
     import SHtml._
 
     <table id="listCourses"> {
@@ -79,9 +89,11 @@ class CRUDCourses{
         <th> Name </th>
         <th> Language </th>
         <th> Edit </th>
+        <th> Clean Dependents </th>
+        <th> Delete Dependents </th>
         <th> Delete </th>
       </tr> ++
-        Course.findAll.map {
+        page.map {
           course =>
             <tr> {
               <td> { course.name.is } </td> ++
@@ -95,6 +107,18 @@ class CRUDCourses{
                   })
                 }</td> ++
                 <td> {
+                  button(Text("Clean Dependents"), () => {
+                    course.cleanDependents
+                    S.redirectTo(Site.editCourseLoc.calcHref(course))
+                  })
+                }</td> ++
+                <td> {
+                  button(Text("Delete Dependents"), () => {
+                    course.deleteDependents
+                    S.redirectTo(Site.crudCourse.url)
+                  })
+                }</td> ++
+                <td> {
                   button(Text("Delete"), () => {
                     course.delete_!
                     S.redirectTo(Site.crudCourse.url)
@@ -105,5 +129,5 @@ class CRUDCourses{
     }</table>
 
   }
-  
+
 }

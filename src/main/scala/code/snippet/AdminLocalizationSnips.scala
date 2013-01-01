@@ -5,6 +5,7 @@ import util._
 import http._
 import common._
 import Helpers._
+import mapper._
 
 import js.JsCmds._
 import code.model._
@@ -73,8 +74,17 @@ class EditLocalization {
   
 }
 
-class CRUDLocalizations{
-  def render = {
+class CRUDLocalizations extends PaginatorSnippet[Localization] {
+   override def count = Localization.count
+  override def itemsPerPage = 10
+  override def page = {
+    var list: List[QueryParam[Localization]] = List()
+    list +:= OrderBy(Localization.label, Descending)
+    list +:= StartAt(curPage * itemsPerPage)
+    list +:= MaxRows(itemsPerPage)
+    Localization.findAll(list: _*)
+  }
+  def renderPage(in: NodeSeq): NodeSeq = {
     <table id="listOfLocalesByLabel"> {
       <tr>
         <th> Label </th>
@@ -83,7 +93,7 @@ class CRUDLocalizations{
         <th> Edit </th>
         <th> Delete </th>
       </tr> ++
-        Localization.findAll.sortBy(_.label.is).map {
+        page.map {
           ll =>
             <tr> {
               <td> {ll.label.is }</td> ++
