@@ -1,0 +1,28 @@
+<lift:surround with="default" at="content">
+<div class="lift:AddPhotoToRecipe?form=post;multipart=true">
+	<span>Choose file</span>
+	<span id="upload"></span>
+  	<br />
+  	<span>Is it going to be the Main photo of the recipe ?</span>
+  	<span id="isMain"></span>
+  	<br />
+  	<span>Explanation</span>
+  	<br/>
+  	<span id="text"></span>
+  	<br />
+  	<span id="submit"></span>
+</div>
+
+<div class="lift:PhotoTable.renderPage?form=post">
+	
+</div>
+<div class="lift:PhotoTable.paginate">
+		<nav:first></nav:first>
+		| <nav:prev ></nav:prev >
+		| <nav:allpages></nav:allpages>
+		| <nav:next></nav:next>
+		| <nav:last></nav:last>
+		| <nav:records ></nav:records >
+</div>
+
+</lift:surround>
